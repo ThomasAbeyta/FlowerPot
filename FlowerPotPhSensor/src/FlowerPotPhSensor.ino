@@ -13,6 +13,10 @@
 #include <JsonParserGeneratorRK.h>
 
 const int BUTTON = D7;
+int lastTime;
+int ON_OFF;
+int last;
+float value1;
 
 TCPClient TheClient;
 
@@ -21,25 +25,15 @@ Adafruit_MQTT_SPARK mqtt(&TheClient, AIO_SERVER, AIO_SERVERPORT, AIO_USERNAME, A
 Adafruit_MQTT_Publish mqttObj1 = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/abq_gps");
 Adafruit_MQTT_Subscribe mqttON_OFFobject = Adafruit_MQTT_Subscribe(&mqtt, AIO_USERNAME "/feeds/ON_OFF");
 
-unsigned long last, lastTime;
-int value1, ON_OFF;
-struct geo {
-    float lat;
-    float lon;
-    int alt;
-    };
 
-geo myLoc;
-geo locations[13];
-
-SYSTEM_MODE(SEMI_AUTOMATIC);
+//SYSTEM_MODE(SEMI_AUTOMATIC);
 
 void setup() {
     Serial.begin(9600);
     waitFor(Serial.isConnected, 15000); // wait for Serial Monitor to startup
 
-    // Connect to WiFi without going to Particle Cloud
-    WiFi.connect();
+    
+    WiFi.connect();                     // Connect to WiFi without going to Particle Cloud
     while (WiFi.connecting()) {
         Serial.printf(".");
     }
@@ -49,11 +43,7 @@ void setup() {
 
     pinMode(BUTTON, OUTPUT);
 
-    myLoc.lat = random(35.02171, 35.190231);
-    myLoc.lon = random(-106.65818, -106.515716);
-    myLoc.alt = random(1517, 1762);
-
-    Serial.printf("Location: lat %f, lon %f,  alt %i \n", myLoc.lat, myLoc.lon, myLoc.alt);
+   
 }
 
 void createEventPayLoad(float lat, float lon, float alt) {
@@ -61,9 +51,9 @@ void createEventPayLoad(float lat, float lon, float alt) {
     {
         JsonWriterAutoObject obj(&jw);
 
-    jw.insertKeyValue("Temperature", lat);
-    jw.insertKeyValue("Pressure", lon); 
-    jw.insertKeyValue("Humidity", alt);
+    jw.insertKeyValue("latitude", lat);
+    jw.insertKeyValue("longitude", lon); 
+    jw.insertKeyValue("altitude", alt);
     }
     Particle.publish("abq_gps", jw.getBuffer(), PRIVATE);
 }

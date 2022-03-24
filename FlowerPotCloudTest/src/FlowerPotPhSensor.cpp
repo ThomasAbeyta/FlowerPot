@@ -48,7 +48,7 @@ void setup() {
         Serial.printf(".");
     }
 
-    // Setup MQTT subscription for onoff feed.
+   // Setup MQTT subscription for onoff feed.
     mqtt.subscribe(&mqttON_OFFobject);
 
     pinMode(BUTTON, OUTPUT);

@@ -42,7 +42,7 @@ void loop() {
         //Serial.print(",");
         Serial.printf("ratio:%lu\n",ratio);
         //Serial.print(",");
-        Serial.printf("concentration:")
+        Serial.printf("concentration:");
         Serial.println(concentration);
         lowpulseoccupancy = 0;
         starttime = millis();

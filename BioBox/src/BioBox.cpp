@@ -11,22 +11,20 @@
  * Date:
  */
 
-#include "Air_Quality_Sensor.h"
-
 #include "Adafruit_GFX.h"
+#include "Adafruit_MQTT/Adafruit_MQTT.h"
+#include "Adafruit_MQTT/Adafruit_MQTT_SPARK.h"
 #include "Adafruit_SSD1306.h"
-#include <Adafruit_MQTT.h>
-// #include "Adafruit_MQTT/Adafruit_MQTT.h"
-// #include "Adafruit_MQTT/Adafruit_MQTT_SPARK.h"
+#include "Air_Quality_Sensor.h"
 #include "credentials.h"
-#include <JsonParserGeneratorRK.h>
+#include <Adafruit_MQTT.h>
+
 
 void setup();
 void loop();
 void oledText(void);
 void waterPumpOn();
-void createEventPayLoad(float lat, float lon, float alt);
-#line 18 "/Users/Abeyta/Documents/IoT/TomsFlowerPot/BioBox/src/BioBox.ino"
+#line 17 "/Users/Abeyta/Documents/IoT/TomsFlowerPot/BioBox/src/BioBox.ino"
 const int WATERSENSOR = A1;
 const int WATERPUMP = A5;
 const int BUTTON = D7;
@@ -39,16 +37,15 @@ int currentTime;
 int lastSecond;
 float value1;
 
-TCPClient TheClient;
+// TCPClient TheClient;
 
-Adafruit_MQTT_SPARK mqtt(&TheClient, AIO_SERVER, AIO_SERVERPORT, AIO_USERNAME, AIO_KEY);
+// Adafruit_MQTT_SPARK mqtt(&TheClient, AIO_SERVER, AIO_SERVERPORT, AIO_USERNAME, AIO_KEY);
 
-Adafruit_MQTT_Publish mqttObj1 = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/abq_gps");
-Adafruit_MQTT_Subscribe mqttON_OFFobject = Adafruit_MQTT_Subscribe(&mqtt, AIO_USERNAME "/feeds/ON_OFF");
+// Adafruit_MQTT_Publish mqttObj1 = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/abq_gps");
+// Adafruit_MQTT_Subscribe mqttON_OFFobject = Adafruit_MQTT_Subscribe(&mqtt, AIO_USERNAME "/feeds/ON_OFF");
 
 #define OLED_RESET D4
 Adafruit_SSD1306 display(OLED_RESET);
-
 
 String DateTime, TimeOnly;
 
@@ -58,7 +55,7 @@ String DateTime, TimeOnly;
 
 AirQualitySensor sensor(A0);
 
-SYSTEM_MODE(SEMI_AUTOMATIC);
+// SYSTEM_MODE(SEMI_AUTOMATIC);
 
 void setup() {
 
@@ -88,16 +85,19 @@ void setup() {
     } else {
         Serial.println("Sensor ERROR!");
     }
-    WiFi.connect();                     // Connect to WiFi without going to Particle Cloud
-    while (WiFi.connecting()) {
+    WiFi.connect(); // Connect to WiFi without going to Particle Cloud
+     while (WiFi.connecting()) {
         Serial.printf(".");
     }
 
-    // Setup MQTT subscription for onoff feed.
-    mqtt.subscribe(&mqttON_OFFobject);
+//     // Setup MQTT subscription for onoff feed.
+//     mqtt.subscribe(&mqttON_OFFobject);
 
-    pinMode(BUTTON, OUTPUT);
+//     pinMode(BUTTON, OUTPUT);
 }
+
+
+//     Particle.publish("abq_gps", jw.getBuffer(), PRIVATE);
 
 void loop() {
 
@@ -127,44 +127,45 @@ void loop() {
     } else if (quality == AirQualitySensor::FRESH_AIR) {
         Serial.println("Fresh air.");
     }
- // Validate connected to MQTT Broker
-    MQTT_connect();
 
-    // Ping MQTT Broker every 2 minutes to keep connection alive
-    if ((millis() - last) > 120000) {
-        Serial.printf("Pinging MQTT \n");
-        if (!mqtt.ping()) {
-            Serial.printf("Disconnecting \n");
-            mqtt.disconnect();
-        }
-        last = millis();
-    }
+    // Validate connected to MQTT Broker
+//     MQTT_connect();
 
-    // publish to cloud every 30 seconds
-    
-    if((millis()-lastTime > 6000)) {
-      if(mqtt.Update()) {
-        mqttObj1.publish(value1);
-        Serial.printf("Publishing %0.2f \n",value1);
-        }
-      lastTime = millis();
-    }
+//     // Ping MQTT Broker every 2 minutes to keep connection alive
+//     if ((millis() - last) > 120000) {
+//         Serial.printf("Pinging MQTT \n");
+//         if (!mqtt.ping()) {
+//             Serial.printf("Disconnecting \n");
+//             mqtt.disconnect();
+//         }
+//         last = millis();
+//     }
 
-    // this is our 'wait for incoming subscription packets' busy subloop
-    Adafruit_MQTT_Subscribe *subscription;
-    while ((subscription = mqtt.readSubscription(100))) {
-        if (subscription == &mqttON_OFFobject) {
-            ON_OFF = atof((char *)mqttON_OFFobject.lastread);
-            Serial.printf("Received %i from Adafruit.io feed FeedNameB \n", ON_OFF);
-        }
-    }
-    if (ON_OFF == 1) {
-        digitalWrite(BUTTON, HIGH);
-    } else {
-        digitalWrite(D7, LOW);
-    }
+//     // publish to cloud every 30 seconds
 
-    delay(1000);
+//     if ((millis() - lastTime > 6000)) {
+//         if (mqtt.Update()) {
+//             mqttObj1.publish(value1);
+//             Serial.printf("Publishing %0.2f \n", value1);
+//         }
+//         lastTime = millis();
+//     }
+
+//     // this is our 'wait for incoming subscription packets' busy subloop
+//     Adafruit_MQTT_Subscribe *subscription;
+//     while ((subscription = mqtt.readSubscription(100))) {
+//         if (subscription == &mqttON_OFFobject) {
+//             ON_OFF = atof((char *)mqttON_OFFobject.lastread);
+//             Serial.printf("Received %i from Adafruit.io feed FeedNameB \n", ON_OFF);
+//         }
+//     }
+//     if (ON_OFF == 1) {
+//         digitalWrite(BUTTON, HIGH);
+//     } else {
+//         digitalWrite(D7, LOW);
+//     }
+// Particle.publish("abq_gps", jw.getBuffer(), PRIVATE);
+//     delay(1000);
 }
 
 void oledText(void) {
@@ -179,41 +180,23 @@ void oledText(void) {
 void waterPumpOn() {
     digitalWrite(WATERPUMP, HIGH);
     delay(1000);
-    digitalWrite(WATERPUMP,LOW);
+    digitalWrite(WATERPUMP, LOW);
 }
 
 // Stop if already connected.
-    if (mqtt.connected()) {
-        return;
-    }
+// if (mqtt.connected()) {
+//     return;
+// }
 
-    Serial.print("Connecting to MQTT... ");
+// Serial.print("Connecting to MQTT... ");
 
-    while ((ret = mqtt.connect()) != 0) { // connect will return 0 for connected
-        Serial.printf("%s\n", (char *)mqtt.connectErrorString(ret));
-        Serial.printf("Retrying MQTT connection in 5 seconds..\n");
-        mqtt.disconnect();
-        delay(5000); // wait 5 seconds
-    }
-    Serial.printf("MQTT Connected!\n");
-   
-
+// while ((ret = mqtt.connect()) != 0) { // connect will return 0 for connected
+//     Serial.printf("%s\n", (char *)mqtt.connectErrorString(ret));
+//     Serial.printf("Retrying MQTT connection in 5 seconds..\n");
+//     mqtt.disconnect();
+//     delay(5000); // wait 5 seconds
+// }
+// Serial.printf("MQTT Connected!\n");
 
 
-void createEventPayLoad(float lat, float lon, float alt) {
-    JsonWriterStatic<256> jw;
-    {
-        JsonWriterAutoObject obj(&jw);
-
-    jw.insertKeyValue("latitude", lat);
-    jw.insertKeyValue("longitude", lon); 
-    jw.insertKeyValue("altitude", alt);
-    }
-    Particle.publish("abq_gps", jw.getBuffer(), PRIVATE);
-}
-
-
-
-    
-
-
+// }

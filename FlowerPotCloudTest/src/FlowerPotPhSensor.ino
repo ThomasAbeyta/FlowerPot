@@ -1,9 +1,3 @@
-/******************************************************/
-//       THIS IS A GENERATED FILE - DO NOT EDIT       //
-/******************************************************/
-
-#include "Particle.h"
-#line 1 "/Users/Abeyta/Documents/IoT/TomsFlowerPot/FlowerPotPhSensor/src/FlowerPotPhSensor.ino"
 /*
  * Project L14_03_andAhalf_GPS_publish
  * Description:
@@ -12,17 +6,11 @@
  */
 
 #include <Adafruit_MQTT.h>
-
-#include "Adafruit_MQTT/Adafruit_MQTT.h"
-#include "Adafruit_MQTT/Adafruit_MQTT_SPARK.h"
+// #include "Adafruit_MQTT/Adafruit_MQTT.h"
+// #include "Adafruit_MQTT/Adafruit_MQTT_SPARK.h"
 #include "credentials.h"
 #include <JsonParserGeneratorRK.h>
 
-void setup();
-void createEventPayLoad(float lat, float lon, float alt);
-void loop();
-void MQTT_connect();
-#line 15 "/Users/Abeyta/Documents/IoT/TomsFlowerPot/FlowerPotPhSensor/src/FlowerPotPhSensor.ino"
 const int BUTTON = D7;
 int lastTime;
 int ON_OFF;

@@ -10,74 +10,69 @@
  * Author:
  * Date:
  */
+#include "Adafruit_GFX.h"
+#include "Adafruit_SSD1306.h"
+#include "ph_grav.h" 
 
-// to use the Atlas gravity circuits with 
-// the gravity isolator board's pulse output 
-// uncomment line 8: #define USE_PULSE_OUT
-// you can use any pins instead of just the analog ones
-// but it must be recalibrated
-// note that the isolator's analog output also provides isolation
-
-// #define USE_PULSE_OUT
-
-void parse_cmd(char* string);
 void setup();
 void loop();
-#line 17 "/Users/Abeyta/Documents/IoT/TomsFlowerPot/FlowerPotMain/src/FlowerPotMain.ino"
-#ifdef USE_PULSE_OUT
-  #include "ph_iso_grav.h"       
-  Gravity_pH_Isolated pH = Gravity_pH_Isolated(A0);         
-#else
-  #include "ph_grav.h"             
-  Gravity_pH pH = Gravity_pH(A0);   
+void oledText(void);
+#line 11 "/Users/Abeyta/Documents/IoT/TomsFlowerPot/FlowerPotMain/src/FlowerPotMain.ino"
+#define OLED_RESET D4
+Adafruit_SSD1306 display(OLED_RESET);
+
+const int WATERSENSOR = A1;
+int waterSensor;
+String DateTime , TimeOnly;
+
+#if (SSD1306_LCDHEIGHT != 64)
+#error("Height incorrect, please fix Adafruit_SSD1306.h!");
 #endif
-                
-
-uint8_t user_bytes_received = 0;                
-const uint8_t bufferlen = 32;                   
-char user_data[bufferlen];                     
-
-void parse_cmd(char* string) {                   
-  strupr(string);                                
-  if (strcmp(string, "CAL,7") == 0) {       
-    pH.cal_mid();                                
-    Serial.println("MID CALIBRATED");
-  }
-  else if (strcmp(string, "CAL,4") == 0) {            
-    pH.cal_low();                                
-    Serial.println("LOW CALIBRATED");
-  }
-  else if (strcmp(string, "CAL,10") == 0) {      
-    pH.cal_high();                               
-    Serial.println("HIGH CALIBRATED");
-  }
-  else if (strcmp(string, "CAL,CLEAR") == 0) { 
-    pH.cal_clear();                              
-    Serial.println("CALIBRATION CLEARED");
-  }
-}
 
 void setup() {
-  Serial.begin(9600);                            
-  delay(200);
-  Serial.println(F("Use commands \"CAL,7\", \"CAL,4\", and \"CAL,10\" to calibrate the circuit to those respective values"));
-  Serial.println(F("Use command \"CAL,CLEAR\" to clear the calibration"));
-  if (pH.begin()) {                                     
-    Serial.println("Loaded EEPROM");
-  }
+
+    Serial.begin(9600);
+
+    // by default, we'll generate the high voltage from the 3.3v line internally! (neat!)
+    display.begin(SSD1306_SWITCHCAPVCC, 0x3c); // initialize with the I2C addr 0x3D (for the 128x64)
+    // init done
+
+    display.display(); // show splashscreen
+    delay(2000);
+    display.clearDisplay(); // clears the screen and buffer
+
+    pinMode(WATERSENSOR, INPUT);
+
+    Time.zone(-6); 
+    Particle.syncTime();
+    //Time.beginDST();
+
+    display.setRotation(0); //  0= right side up, 1=  portrait from right to left, 4 ,  3=portrait left to right,  2=right side up, 4= right side up
+    
+    SYSTEM_MODE(SEMI_AUTOMATIC);
 }
 
 void loop() {
-  if (Serial.available() > 0) {                                                      
-    user_bytes_received = Serial.readBytesUntil(13, user_data, sizeof(user_data));   
-  }
 
-  if (user_bytes_received) {                                                      
-    parse_cmd(user_data);                                                          
-    user_bytes_received = 0;                                                        
-    memset(user_data, 0, sizeof(user_data));                                         
-  }
-  
-  Serial.println(pH.read_ph());                                                      
-  delay(1000);
+    oledText();
+
+    waterSensor = analogRead(WATERSENSOR);
+
+    Serial.printf("%i \n", waterSensor);
+
+    DateTime = Time.timeStr(); //Current Date and Time from Particle Time class
+    TimeOnly = DateTime.substring(11,19);
+    Serial.printf("Date and time is %s\n",DateTime.c_str());
+    Serial.printf("Time is %s\n",TimeOnly.c_str());
+    
+    delay(1000);
+}
+
+void oledText(void) {
+    display.setTextSize(1);
+    display.setTextColor(WHITE);
+    display.setCursor(10, 0);
+    display.clearDisplay();
+    display.printf("Time is %s\n\n  Dryness is at: %i \n",TimeOnly.c_str(), waterSensor);
+    display.display();
 }

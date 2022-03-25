@@ -3,7 +3,7 @@
 /******************************************************/
 
 #include "Particle.h"
-#line 1 "c:/Users/ddcio/Documents/IoT/Cohort7/students/tomas/atlas_grav/src/atlas_grav.ino"
+#line 1 "/Users/Abeyta/Documents/IoT/TomsFlowerPot/atlas_grav/src/atlas_grav.ino"
 /*
  * Project atlas_grav
  * Description: Hacked code to get pH sensor to roughly work
@@ -16,8 +16,8 @@
 void setup();
 void loop();
 float readTemperature();
-#line 10 "c:/Users/ddcio/Documents/IoT/Cohort7/students/tomas/atlas_grav/src/atlas_grav.ino"
-const int PH_PIN=A0;
+#line 10 "/Users/Abeyta/Documents/IoT/TomsFlowerPot/atlas_grav/src/atlas_grav.ino"
+const int PH_PIN=A1;
 float voltage,phValue,temperature;
 float ph_BAR;
 DFRobot_PH ph;

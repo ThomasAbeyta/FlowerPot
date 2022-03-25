@@ -14,6 +14,13 @@
 #include <Adafruit_BME280.h>
 #include <Adafruit_MQTT.h>
 #include <math.h>
+#include "DFRobot_PH.h"
+
+const int PH_PIN=A1;
+float voltage,phValue,temperature;
+float ph_BAR;
+DFRobot_PH ph;
+
 
 const int WATERSENSOR = A1;
 const int WATERPUMP = A5;
@@ -35,7 +42,7 @@ int lastPhTime;
 float phMeter;
 unsigned long duration;
 unsigned long starttime;
-unsigned long sampletime_ms = 200; // sample 30s ;
+unsigned long sampletime_ms = 600000; // sample 30s ;
 unsigned long lowpulseoccupancy = 0;
 float ratio = 0;
 float concentration = 0;
@@ -78,6 +85,8 @@ void setup() {
 
     pinMode(WATERSENSOR, INPUT);
     pinMode(WATERPUMP, OUTPUT);
+     ph.begin();
+    pinMode(A0,INPUT);
 
     Time.zone(-6);
     Particle.syncTime();
@@ -123,11 +132,22 @@ void loop() {
     if((millis()-lastTime > 6000)) {
       if(mqtt.Update()) {
         mqttPublishWater.publish(waterSensor);
-        mqtttempC.publish(waterSensor);
-        Serial.printf("Publishing %i \n Temperature is:%i",waterSensor,tempC);
+        mqtttempC.publish(tempC);
+        Serial.printf("AdaFruit Publishing %i \n Temperature is:%i",waterSensor,tempC);
         }
       lastTime = millis();
     }
+
+     static unsigned long timepoint = millis();
+    if(millis()-timepoint>5000){                  //time interval: 1s
+        timepoint = millis();
+        voltage = analogRead(PH_PIN)/2048.0*3000.0;  // read the voltage
+        phValue = ph.readPH(voltage,temperature);  // convert voltage to pH with temperature compensation
+        Serial.printf(" ph: %0.2f\n",phValue);
+        ph_BAR = (phValue*0.6)+7.1;
+        Serial.printf("Tom's pH = %0.2f\n",ph_BAR);
+    }
+    ph.calibration(voltage,temperature);           // calibration process by Serail CMD
 
 
     oledText();
@@ -138,7 +158,7 @@ void loop() {
     Serial.printf("Time is %s\n", TimeOnly.c_str());
 
     waterSensor = analogRead(WATERSENSOR);
-    Serial.printf("%i \n", waterSensor);
+    Serial.printf("Moisture sensor:%i \n", waterSensor);
 
     
     
@@ -155,7 +175,7 @@ void loop() {
         phDwnPump();
     }
 
-    if (waterSensor > 1940) {
+    if (waterSensor < 1940) {
         waterPumpOn();
     }
 
@@ -185,6 +205,7 @@ void loop() {
     if (OnlineWaterPump == 1) {
         waterPumpOn();
     }
+
     
     // Particle.publish("abq_gps", jw.getBuffer(), PRIVATE);
 
@@ -208,11 +229,10 @@ void loop() {
     if (tempC >= 80) {
         digitalWrite(FAN, HIGH);
     }
-    if (tempC <= 80) {
-        digitalWrite(FAN, LOW);
-    }
+    else{
+        digitalWrite(FAN,LOW);
+        }
 
-    delay(1000);
 }
 
 void oledText(void) {
@@ -226,7 +246,7 @@ void oledText(void) {
 
 void waterPumpOn() {
     digitalWrite(WATERPUMP, HIGH);
-    delay(4000);
+    delay(1000);
     digitalWrite(WATERPUMP, LOW);
 }
 void phUpPump() {

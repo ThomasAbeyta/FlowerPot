@@ -7,7 +7,7 @@
 
 #include "DFRobot_PH.h"
 
-const int PH_PIN=A0;
+const int PH_PIN=A1;
 float voltage,phValue,temperature;
 float ph_BAR;
 DFRobot_PH ph;
